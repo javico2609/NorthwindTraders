@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Northwind.Application.Interfaces;
 using Northwind.Domain.Entities;
-using Northwind.Persistence.Extensions;
 
 namespace Northwind.Persistence
 {
-    public class NorthwindDbContext : DbContext
+    public class NorthwindDbContext : DbContext, INorthwindDbContext
     {
         public NorthwindDbContext(DbContextOptions<NorthwindDbContext> options)
             : base(options)
@@ -34,10 +34,10 @@ namespace Northwind.Persistence
         public DbSet<Territory> Territories { get; set; }
 
         public DbSet<User> Users { get; set; }
-
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyAllConfigurations();
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(NorthwindDbContext).Assembly);
         }
     }
 }

@@ -1,30 +1,33 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Northwind.Persistence;
+using Northwind.Application.Interfaces;
 
 namespace Northwind.Application.Products.Queries.GetAllProducts
 {
     public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, ProductsListViewModel>
     {
-        private readonly NorthwindDbContext _context;
+        private readonly INorthwindDbContext _context;
+        private readonly IMapper _mapper;
 
-        public GetAllProductsQueryHandler(NorthwindDbContext context)
+        public GetAllProductsQueryHandler(INorthwindDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<ProductsListViewModel> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
         {
             // TODO: Set view model state based on user permissions.
+            var products = await _context.Products.OrderBy(p => p.ProductName).Include(p => p.Supplier).ToListAsync(cancellationToken);
+
             var model = new ProductsListViewModel
             {
-                Products = await _context.Products
-                    .Select(ProductDto.Projection)
-                    .OrderBy(p => p.ProductName)
-                    .ToListAsync(cancellationToken),
+                Products = _mapper.Map<IEnumerable<ProductDto>>(products),
                 CreateEnabled = true
             };
 
